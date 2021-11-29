@@ -1,3 +1,5 @@
+use std::{thread, time};
+
 enum Program {
     Start,
     Working,
@@ -7,6 +9,7 @@ enum Program {
 trait ObjectInterface {
     fn setPosition(&mut self, position: Point);
     fn getPosition(&self) -> Point;
+    fn getSize(&self) -> Size;
 }
 
 trait MoveInterface {
@@ -25,6 +28,12 @@ struct Point {
     y: i32,
 }
 
+#[derive(Copy, Clone)]
+struct Size {
+    width: u16,
+    height: u16
+}
+
 struct Direction {
     horizontal: f32,
     vertical: f32,
@@ -32,7 +41,7 @@ struct Direction {
 
 struct Rectangle {
     position: Point,
-    size: [u16; 2],
+    size: Size,
     direction: Direction,
     speed: u16,
 }
@@ -57,17 +66,21 @@ impl Rectangle {
     fn new(
         x: i32,
         y: i32,
-        size: [u16; 2],
+        width: u16,
+        height: u16,
         horizontal: f32,
         vertical: f32,
         speed: u16,
     ) -> Rectangle {
         Rectangle {
             position: Point { x, y },
-            size,
+            size: Size { 
+                width,
+                height
+            },
             direction: Direction {
                 horizontal,
-                vertical,
+                vertical
             },
             speed,
         }
@@ -76,7 +89,7 @@ impl Rectangle {
 
 impl Default for Rectangle {
     fn default() -> Self {
-        Rectangle::new(0, 0, [20, 20], 1.0, 0.0, 4)
+        Rectangle::new(0, 0, 20, 20, 1.0, 0.0, 4)
     }
 }
 
@@ -87,6 +100,10 @@ impl ObjectInterface for Rectangle {
 
     fn getPosition(&self) -> Point {
         self.position
+    }
+
+    fn getSize(&self) -> Size {
+        self.size
     }
 }
 
