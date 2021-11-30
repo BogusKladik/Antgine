@@ -1,4 +1,7 @@
-use std::{thread, time};
+use std::{
+    thread::sleep,
+    time::{Duration, Instant},
+};
 
 enum Program {
     Start,
@@ -7,18 +10,18 @@ enum Program {
 }
 
 trait ObjectInterface {
-    fn setPosition(&mut self, position: Point);
-    fn getPosition(&self) -> Point;
-    fn getSize(&self) -> Size;
+    fn set_position(&mut self, position: Point);
+    fn get_position(&self) -> Point;
+    fn get_size(&self) -> Size;
 }
 
 trait MoveInterface {
-    fn run(&mut self, time: f32);
+    fn run(&mut self, map: &Map, time: f32);
 }
 
 struct Map {
-    width: u16,
-    height: u16,
+    plt: Point,
+    prb: Point,
     object: Vec<Box<dyn ObjectInterface>>,
 }
 
@@ -31,7 +34,7 @@ struct Point {
 #[derive(Copy, Clone)]
 struct Size {
     width: u16,
-    height: u16
+    height: u16,
 }
 
 struct Direction {
@@ -43,14 +46,14 @@ struct Rectangle {
     position: Point,
     size: Size,
     direction: Direction,
-    speed: u16,
+    speed: f32,
 }
 
 impl Map {
-    fn new(width: u16, height: u16) -> Map {
+    fn new(plt: Point, prb: Point) -> Map {
         Map {
-            width,
-            height,
+            plt,
+            prb,
             object: Vec::<Box<dyn ObjectInterface>>::new(),
         }
     }
@@ -58,7 +61,18 @@ impl Map {
 
 impl Default for Map {
     fn default() -> Self {
-        Map::new(1920, 1080)
+        Map::new(Point::new(0, 0), Point::new(1920, 1080))
+    }
+}
+
+impl Point {
+    fn new(x: i32, y: i32) -> Self {
+        Point { x, y }
+    }
+
+    fn add(&mut self, x: i32, y: i32) {
+        self.x += x;
+        self.y += y;
     }
 }
 
@@ -70,17 +84,14 @@ impl Rectangle {
         height: u16,
         horizontal: f32,
         vertical: f32,
-        speed: u16,
+        speed: f32,
     ) -> Rectangle {
         Rectangle {
             position: Point { x, y },
-            size: Size { 
-                width,
-                height
-            },
+            size: Size { width, height },
             direction: Direction {
                 horizontal,
-                vertical
+                vertical,
             },
             speed,
         }
@@ -89,26 +100,75 @@ impl Rectangle {
 
 impl Default for Rectangle {
     fn default() -> Self {
-        Rectangle::new(0, 0, 20, 20, 1.0, 0.0, 4)
+        Rectangle::new(1750, 0, 20, 20, 1.0, 0.0, 1335.4)
     }
 }
 
 impl ObjectInterface for Rectangle {
-    fn setPosition(&mut self, position: Point) {
+    fn set_position(&mut self, position: Point) {
         self.position = position
     }
 
-    fn getPosition(&self) -> Point {
+    fn get_position(&self) -> Point {
         self.position
     }
 
-    fn getSize(&self) -> Size {
+    fn get_size(&self) -> Size {
         self.size
+    }
+}
+
+impl MoveInterface for Rectangle {
+    fn run(&mut self, map: &Map, time: f32) {
+        let mut point = self.position;
+        point.add(
+            (self.direction.horizontal * self.speed * time) as i32,
+            (self.direction.vertical * self.speed * time) as i32,
+        );
+        loop {
+            match point {
+                Point { x, .. } if map.plt.x > x || x + (self.size.width as i32) >= map.prb.x => {
+                    self.direction.horizontal = -self.direction.horizontal;
+
+                    if map.plt.x > x {
+                        point.x = 2 * map.plt.x - x;
+                    } else if x + (self.size.width as i32) > map.prb.x {
+                        point.x = 2 * map.prb.x - x - 2 * (self.size.width as i32);
+                    } else {
+                        self.position = point;
+                        break;
+                    }
+                }
+                Point { y, .. } if map.plt.y > y || y + (self.size.height as i32) >= map.prb.y => {
+                    self.direction.vertical = -self.direction.vertical;
+
+                    if map.plt.y > y {
+                        point.y = 2 * map.plt.y - y;
+                    } else if y + (self.size.height as i32) >= map.prb.y {
+                        point.y = 2 * map.prb.y - y - 2 * (self.size.height as i32);
+                    } else {
+                        self.position = point;
+                        break;
+                    }
+                }
+                _ => {
+                    self.position = point;
+                    break;
+                }
+            }
+        }
     }
 }
 
 fn main() {
     let program = Program::Start;
     let mut map = Map::default();
-    println!("Hello, world!");
+    let mut a = Rectangle::default();
+    println!("x = {} y = {}", &a.position.x, &a.position.y);
+    loop {
+        let now = Instant::now();
+        sleep(Duration::from_millis(100));
+        a.run(&map, Instant::now().duration_since(now).as_secs_f32());
+        println!("x = {} y = {} w = {} h = {} t = {:?}", &a.position.x, &a.position.y, &a.size.width, &a.size.height, now);
+    }
 }
