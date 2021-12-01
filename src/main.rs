@@ -22,16 +22,16 @@ trait MoveInterface {
 struct Map {
     plt: Point,
     prb: Point,
-    object: Vec<Box<dyn ObjectInterface>>,
+    objects: Vec<Box<dyn ObjectInterface>>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Point {
     x: i32,
     y: i32,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Size {
     width: u16,
     height: u16,
@@ -54,7 +54,7 @@ impl Map {
         Map {
             plt,
             prb,
-            object: Vec::<Box<dyn ObjectInterface>>::new(),
+            objects: Vec::<Box<dyn ObjectInterface>>::new(),
         }
     }
 }
@@ -100,7 +100,7 @@ impl Rectangle {
 
 impl Default for Rectangle {
     fn default() -> Self {
-        Rectangle::new(1750, 0, 20, 20, 1.0, 0.0, 1335.4)
+        Rectangle::new(0, 0, 20, 20, 0.33, -0.66, 600.4)
     }
 }
 
@@ -135,7 +135,7 @@ impl MoveInterface for Rectangle {
                     } else if x + (self.size.width as i32) > map.prb.x {
                         point.x = 2 * map.prb.x - x - 2 * (self.size.width as i32);
                     } else {
-                        self.position = point;
+                        self.set_position(point);
                         break;
                     }
                 }
@@ -147,12 +147,12 @@ impl MoveInterface for Rectangle {
                     } else if y + (self.size.height as i32) >= map.prb.y {
                         point.y = 2 * map.prb.y - y - 2 * (self.size.height as i32);
                     } else {
-                        self.position = point;
+                        self.set_position(point);
                         break;
                     }
                 }
                 _ => {
-                    self.position = point;
+                    self.set_position(point);
                     break;
                 }
             }
@@ -164,11 +164,11 @@ fn main() {
     let program = Program::Start;
     let mut map = Map::default();
     let mut a = Rectangle::default();
-    println!("x = {} y = {}", &a.position.x, &a.position.y);
+    println!("{:?} {:?}", a.get_position(), a.get_size());
     loop {
         let now = Instant::now();
         sleep(Duration::from_millis(100));
         a.run(&map, Instant::now().duration_since(now).as_secs_f32());
-        println!("x = {} y = {} w = {} h = {} t = {:?}", &a.position.x, &a.position.y, &a.size.width, &a.size.height, now);
+        println!("{:?} {:?} t = {:?}", a.get_position(), a.get_size(), now);
     }
 }
