@@ -1,4 +1,4 @@
-use super::traits::{ObjectInterface, MoveInterface};
+use super::traits::{MoveInterface, ObjectInterface};
 
 use super::vec2d::Vec2D;
 
@@ -6,7 +6,7 @@ pub struct Map {
     pub plt: Vec2D,
     pub prb: Vec2D,
     objects: Vec<Box<dyn ObjectInterface>>,
-    pub dyn_objects: Vec<Box<dyn MoveInterface>>
+    pub dyn_objects: Vec<Box<dyn MoveInterface>>,
 }
 
 impl Map {
@@ -19,9 +19,9 @@ impl Map {
         }
     }
 
-    pub fn run(&mut self, time: f32){
+    pub fn run(&mut self, time: f32) {
         let (a, b) = (self.plt, self.prb);
-        for dyn_object in self.dyn_objects.iter_mut(){
+        for dyn_object in self.dyn_objects.iter_mut() {
             (**dyn_object).run(&Map::new(a, b), time);
         }
     }

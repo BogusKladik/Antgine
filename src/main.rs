@@ -1,10 +1,10 @@
 extern crate moving_squares;
 
 use std::{
+    mem,
     thread::sleep,
     time::{Duration, Instant},
 };
-use std::mem;
 
 enum Program {
     Start,
@@ -18,7 +18,11 @@ fn main() {
     let _program = Program::Start;
     let mut map = physics_engine::map::Map::default();
     let a = physics_engine::rectangle::Rectangle::default();
-    println!("{:?} {:?}", physics_engine::traits::ObjectInterface::get_position(&a), physics_engine::traits::ObjectInterface::get_size(&a));
+    println!(
+        "{:?} {:?}",
+        physics_engine::traits::ObjectInterface::get_current_position(&a),
+        physics_engine::traits::ObjectInterface::get_size(&a)
+    );
     println!("{}", mem::size_of_val(&a));
     map.dyn_objects.push(Box::new(a));
     loop {
