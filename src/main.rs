@@ -1,4 +1,4 @@
-extern crate moving_squares;
+extern crate antgine;
 
 use std::{
     mem,
@@ -12,12 +12,13 @@ enum Program {
     _Exit,
 }
 
-use moving_squares::physics_engine;
+use antgine::physics_engine::{self, vec2d::Vec2D};
 
 fn main() {
     let _program = Program::Start;
     let mut map = physics_engine::map::Map::default();
     let a = physics_engine::rectangle::Rectangle::default();
+    let b = physics_engine::rectangle::Rectangle::new([Vec2D::new(1920.0, 0.0), Vec2D::new(1920.0, 0.0)], Vec2D::new(20.0, 20.0), 10.0, Vec2D::new(-1.0, 0.0), 100.0);
     println!(
         "{:?} {:?}",
         physics_engine::traits::ObjectInterface::get_current_position(&a),
@@ -25,6 +26,7 @@ fn main() {
     );
     println!("{}", mem::size_of_val(&a));
     map.dyn_objects.push(Box::new(a));
+    map.dyn_objects.push(Box::new(b));
     loop {
         let now = Instant::now();
         sleep(Duration::from_millis(10));

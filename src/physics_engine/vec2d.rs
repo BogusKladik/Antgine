@@ -74,6 +74,10 @@ impl Vec2D {
             }
         }
     }
+
+    fn len_vector(&self, point: Vec2D) -> f32 {
+        ((self.x - point.x).powf(2.0) + (self.y - point.y).powf(2.0)).powf(0.5)
+    }
 }
 
 impl Add for Vec2D {

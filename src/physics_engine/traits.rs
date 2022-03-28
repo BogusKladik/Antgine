@@ -11,7 +11,9 @@ pub trait ObjectInterface {
 }
 
 pub trait MoveInterface {
-    fn tracer(&mut self, map: &Map, time: f32);
+    fn tracer(&mut self, time: f32);
+    fn run_with_boundaries(&mut self, map: &Map);
     fn run(&mut self, map: &Map, time: f32);
+    
     fn check_collision(&self, plt: Vec2D, prb: Vec2D) -> bool;
 }
