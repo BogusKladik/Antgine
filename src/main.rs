@@ -18,7 +18,13 @@ fn main() {
     let _program = Program::Start;
     let mut map = physics_engine::map::Map::default();
     let a = physics_engine::rectangle::Rectangle::default();
-    let b = physics_engine::rectangle::Rectangle::new([Vec2D::new(1920.0, 0.0), Vec2D::new(1920.0, 0.0)], Vec2D::new(20.0, 20.0), 10.0, Vec2D::new(-1.0, 0.0), 100.0);
+    let b = physics_engine::rectangle::Rectangle::new(
+        [Vec2D::new(1920.0, 0.0), Vec2D::new(1920.0, 0.0)],
+        Vec2D::new(20.0, 20.0),
+        10.0,
+        Vec2D::new(-1.0, 0.0),
+        100.0,
+    );
     println!(
         "{:?} {:?}",
         physics_engine::traits::ObjectInterface::get_current_position(&a),

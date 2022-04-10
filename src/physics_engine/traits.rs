@@ -10,10 +10,9 @@ pub trait ObjectInterface {
     fn get_size(&self) -> Vec2D;
 }
 
-pub trait MoveInterface {
+pub trait MoveInterface: ObjectInterface {
     fn tracer(&mut self, time: f32);
     fn run_with_boundaries(&mut self, map: &Map);
     fn run(&mut self, map: &Map, time: f32);
-    
-    fn check_collision(&self, plt: Vec2D, prb: Vec2D) -> bool;
+    fn check_collision(&self, /*plt: Vec2D, prb: Vec2D*/ position: Vec2D, size: Vec2D) -> bool;
 }

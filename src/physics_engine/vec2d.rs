@@ -11,7 +11,7 @@ impl Vec2D {
         Vec2D { x, y }
     }
 
-    pub fn cross_pointvv(first_vector: [Vec2D; 2], second_vector: [Vec2D; 2]) -> Option<Vec2D> {
+    pub fn cross_pointvv(first_vector: [&Vec2D; 2], second_vector: [&Vec2D; 2]) -> Option<Vec2D> {
         let x1 = first_vector[0].x;
         let y1 = first_vector[0].y;
         let x2 = first_vector[1].x;
@@ -49,7 +49,7 @@ impl Vec2D {
         }
     }
 
-    pub fn cross_pointll(first_line: [Vec2D; 2], second_line: [Vec2D; 2]) -> Option<Vec2D> {
+    pub fn cross_pointll(first_line: [&Vec2D; 2], second_line: [&Vec2D; 2]) -> Option<Vec2D> {
         let x1 = first_line[0].x;
         let y1 = first_line[0].y;
         let x2 = first_line[1].x;
@@ -75,8 +75,26 @@ impl Vec2D {
         }
     }
 
-    fn len_vector(&self, point: Vec2D) -> f32 {
+    fn len_vector(&self, point: &Vec2D) -> f32 {
         ((self.x - point.x).powf(2.0) + (self.y - point.y).powf(2.0)).powf(0.5)
+    }
+
+    fn unit(&self) -> Vec2D {
+        let point_zero = Vec2D::new(0.0, 0.0);
+
+        if self.len_vector(&point_zero) == 0.0 {
+            point_zero
+        } else {
+            Vec2D::new(self.x / self.len_vector(&point_zero), self.y / self.len_vector(&point_zero))
+        }
+    }
+
+    fn dot(vector1: &Vec2D, vector2: &Vec2D) -> f32 {
+        vector1.x * vector2.x + vector1.y * vector2.y
+    }
+
+    fn normal(&self) -> Vec2D {
+        Vec2D::new(-self.y, self.x)
     }
 }
 

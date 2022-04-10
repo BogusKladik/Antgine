@@ -22,12 +22,14 @@ impl Map {
     pub fn run(&mut self, time: f32) {
         let (a, b) = (self.plt, self.prb);
         let lenght_object = self.dyn_objects.len();
-        for (i, dyn_object) in self.dyn_objects.iter_mut().enumerate() {
-            (**dyn_object).run(&Map::new(a, b), time);
+        for i in 0..self.dyn_objects.len() {
+            (*self.dyn_objects[i]).run(&Map::new(a, b), time);
             println!("len = {}, number = {}", lenght_object, i);
-            // for (j, another_dyn_object) in self.dyn_objects.iter_mut().enumerate(){
-
-            // }
+            for j in 0..self.dyn_objects.len() {
+                if i != j {
+                    println!("{}", (*self.dyn_objects[i]).check_collision((*self.dyn_objects[j]).get_potential_position(), (*self.dyn_objects[j]).get_size()));
+                }
+            }
         }
     }
 }

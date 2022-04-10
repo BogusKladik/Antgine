@@ -5,3 +5,5 @@ pub mod rectangle;
 pub mod traits;
 
 pub mod vec2d;
+
+pub mod matrix2D;

@@ -33,10 +33,7 @@ impl Rectangle {
 impl Default for Rectangle {
     fn default() -> Self {
         Rectangle::new(
-            [
-                Vec2D::new(0.0, 0.0),
-                Vec2D::new(0.0, 0.0),
-            ],
+            [Vec2D::new(0.0, 0.0), Vec2D::new(0.0, 0.0)],
             Vec2D::new(20.0, 20.0),
             10.0,
             Vec2D::new(1.0, 0.0),
@@ -69,53 +66,59 @@ impl ObjectInterface for Rectangle {
 
 impl MoveInterface for Rectangle {
     fn tracer(&mut self, time: f32) {
-        // let time = 0.0101436;
-
         self.position[1] += Vec2D::new(
-                self.direction.x * self.speed * time,
-                self.direction.y * self.speed * time,
-            );
+            self.direction.x * self.speed * time,
+            self.direction.y * self.speed * time,
+        );
     }
 
     fn run_with_boundaries(&mut self, map: &Map) {
         loop {
             match self.position[1] {
-                Vec2D { x, .. } if map.plt.x > x - self.size.x / 2.0 || x + self.size.x / 2.0 >= map.prb.x => {
+                Vec2D { x, .. }
+                    if map.plt.x > x - self.size.x / 2.0 || x + self.size.x / 2.0 >= map.prb.x =>
+                {
                     self.direction.x = -self.direction.x;
 
                     if map.plt.x > x - self.size.x / 2.0 {
                         self.position[0] = Vec2D::cross_pointll(
-                            [self.position[0], self.position[1]],
-                            [map.plt, Vec2D::new(map.plt.x, map.prb.y)])
+                            [&self.position[0], &self.position[1]],
+                            [&map.plt, &Vec2D::new(map.plt.x, map.prb.y)],
+                        )
                         .unwrap_or_else(|| Vec2D::new(map.plt.x, self.position[0].y))
                             + Vec2D::new(self.size.x / 2.0, 0.0);
 
                         self.position[1].x = 2.0 * map.plt.x - (x - self.size.x);
                     } else {
                         self.position[0] = Vec2D::cross_pointll(
-                            [self.position[0], self.position[1]],
-                            [map.prb, Vec2D::new(map.prb.x, map.plt.y)])
+                            [&self.position[0], &self.position[1]],
+                            [&map.prb, &Vec2D::new(map.prb.x, map.plt.y)],
+                        )
                         .unwrap_or_else(|| Vec2D::new(map.prb.x, self.position[0].y))
                             - Vec2D::new(self.size.x / 2.0, 0.0);
 
                         self.position[1].x = 2.0 * map.prb.x - (x + self.size.x);
                     }
                 }
-                Vec2D { y, .. } if map.plt.y > y - self.size.y / 2.0 || y + self.size.y / 2.0 >= map.prb.y => {
+                Vec2D { y, .. }
+                    if map.plt.y > y - self.size.y / 2.0 || y + self.size.y / 2.0 >= map.prb.y =>
+                {
                     self.direction.y = -self.direction.y;
 
                     if map.plt.y > y - self.size.y / 2.0 {
                         self.position[0] = Vec2D::cross_pointll(
-                            [self.position[0], self.position[1]],
-                            [map.plt, Vec2D::new(map.prb.x, map.plt.y)])
+                            [&self.position[0], &self.position[1]],
+                            [&map.plt, &Vec2D::new(map.prb.x, map.plt.y)],
+                        )
                         .unwrap_or_else(|| Vec2D::new(self.position[0].x, map.plt.y))
-                        + Vec2D::new( 0.0, self.size.y / 2.0);
+                            + Vec2D::new(0.0, self.size.y / 2.0);
 
                         self.position[1].y = 2.0 * map.plt.y - (y - self.size.y);
                     } else {
                         self.position[0] = Vec2D::cross_pointll(
-                            [self.position[0], self.position[1]],
-                            [map.prb, Vec2D::new(map.plt.x, map.prb.y)])
+                            [&self.position[0], &self.position[1]],
+                            [&map.prb, &Vec2D::new(map.plt.x, map.prb.y)],
+                        )
                         .unwrap_or_else(|| Vec2D::new(self.position[0].x, map.prb.y))
                             - Vec2D::new(0.0, self.size.y / 2.0);
 
@@ -132,7 +135,7 @@ impl MoveInterface for Rectangle {
     fn run(&mut self, map: &Map, time: f32) {
         self.tracer(time);
         self.run_with_boundaries(map);
-        
+
         self.position[0] = self.position[1];
         println!(
             "x = {}, y = {}, speed = {}, direction = {:?}, size = {:?}, time = {}",
@@ -140,20 +143,15 @@ impl MoveInterface for Rectangle {
         );
     }
 
-    fn check_collision(&self, position: Vec2D, size: Vec2D) -> bool {
-        if (self.position[1].x - position.x).abs() > (self.size.x + size.x) / 2.0 {return true}
+    fn check_collision(&self, /*plt: Vec2D, prb: Vec2D*/ position: Vec2D, size: Vec2D) -> bool {
+        if (self.position[1].x - position.x).abs() > (self.size.x + size.x) / 2.0 {
+            return false;
+        }
 
-        if (self.position[1].y - position.y).abs() > (self.size.y + size.y) / 2.0 {return true}
+        if (self.position[1].y - position.y).abs() > (self.size.y + size.y) / 2.0 {
+            return false;
+        }
 
-        false
-        // let collision_x = self.position[1].x + self.size.x >= plt.x && prb.x >= self.position[1].x;
-
-        // let collision_y = self.position[1].y + self.size.y >= plt.y && prb.y >= self.position[1].y;
-
-        // collision_x && collision_y
+        true
     }
-
-    
-
-
 }
