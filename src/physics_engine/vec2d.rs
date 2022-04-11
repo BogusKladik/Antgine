@@ -1,9 +1,16 @@
 use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::default;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec2D {
     pub x: f32,
     pub y: f32,
+}
+
+impl Default for Vec2D {
+    fn default() -> Self {
+        Vec2D::new(0.0, 0.0)
+    }
 }
 
 impl Vec2D {
