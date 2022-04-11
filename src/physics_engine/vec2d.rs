@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign};
 use std::default;
 
 #[derive(Debug, Copy, Clone)]
@@ -82,11 +82,11 @@ impl Vec2D {
         }
     }
 
-    fn len_vector(&self, point: &Vec2D) -> f32 {
+    pub fn len_vector(&self, point: &Vec2D) -> f32 {
         ((self.x - point.x).powf(2.0) + (self.y - point.y).powf(2.0)).powf(0.5)
     }
 
-    fn unit(&self) -> Vec2D {
+    pub fn unit(&self) -> Vec2D {
         let point_zero = Vec2D::new(0.0, 0.0);
 
         if self.len_vector(&point_zero) == 0.0 {
@@ -96,12 +96,16 @@ impl Vec2D {
         }
     }
 
-    fn dot(vector1: &Vec2D, vector2: &Vec2D) -> f32 {
+    pub fn dot(vector1: &Vec2D, vector2: &Vec2D) -> f32 {
         vector1.x * vector2.x + vector1.y * vector2.y
     }
 
-    fn normal(&self) -> Vec2D {
+    pub fn normal(&self) -> Vec2D {
         Vec2D::new(-self.y, self.x)
+    }
+
+    pub fn mul_n(&self, n: f32) -> Vec2D {
+        *self * Vec2D::new(n, n)
     }
 }
 
@@ -141,6 +145,26 @@ impl SubAssign for Vec2D {
         *self = Self {
             x: self.x - other.x,
             y: self.y - other.y,
+        };
+    }
+}
+
+impl Mul for Vec2D {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        Self {
+            x: self.x * other.x,
+            y: self.y * other.y,
+        }
+    }
+}
+
+impl MulAssign for Vec2D {
+    fn mul_assign(&mut self, other: Self) {
+        *self = Self {
+            x: self.x * other.x,
+            y: self.y * other.y,
         };
     }
 }

@@ -19,11 +19,11 @@ fn main() {
     let mut map = physics_engine::map::Map::default();
     let a = physics_engine::rectangle::Rectangle::default();
     let b = physics_engine::rectangle::Rectangle::new(
-        [Vec2D::new(1920.0, 0.0), Vec2D::new(1920.0, 0.0)],
-        Vec2D::new(20.0, 20.0),
+        Vec2D::new(650.0 - 10.0, 0.0), 
+        Vec2D::new(650.0 - 10.0, 20.0),
+        20.0,
         10.0,
-        Vec2D::new(-1.0, 0.0),
-        100.0,
+        Vec2D::new(-100.0, 0.0),
     );
     println!(
         "{:?} {:?}",
