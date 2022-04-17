@@ -1,5 +1,3 @@
-use std::default;
-
 use super::vec2d::Vec2D;
 
 struct Matrix2D {

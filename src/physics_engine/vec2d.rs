@@ -1,5 +1,4 @@
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign};
-use std::default;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec2D {

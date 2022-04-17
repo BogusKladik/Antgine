@@ -31,7 +31,6 @@ impl Map {
             println!("len = {}, number = {}", lenght_object, i);
             for j in 0..self.dyn_objects.len() {
                 if i != j {
-                    // println!("{}", (*self.dyn_objects[i]).check_collision((*self.dyn_objects[j]).get_potential_position(), (*self.dyn_objects[j]).get_size()));
                     println!("{}", (*self.dyn_objects[i]).sat(&(*self.dyn_objects[j])));
                 }
             }
