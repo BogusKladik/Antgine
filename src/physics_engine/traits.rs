@@ -15,5 +15,5 @@ pub trait MoveInterface: ObjectInterface {
     fn run_with_boundaries(&mut self, plt: &Vec2D, prb: &Vec2D);
     fn run(&mut self, plt: Vec2D, prb: Vec2D, time: f32);
     fn check_collision(&self, position: Vec2D, size: Vec2D) -> bool;
-    fn sat(&self, object: &dyn MoveInterface) -> (bool, f32, Vec2D, Vec2D);
+    fn sat(&self, object: &dyn MoveInterface) -> Option<(f32, Vec2D, Vec2D)>;
 }

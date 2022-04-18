@@ -191,7 +191,7 @@ impl MoveInterface for Rectangle {
         true
     }
 
-    fn sat(&self, object: &dyn MoveInterface) -> (bool, f32, Vec2D, Vec2D) {
+    fn sat(&self, object: &dyn MoveInterface) -> Option<(f32, Vec2D, Vec2D)> {
         fn projection_on_axis(axis: &Vec2D, object: &dyn MoveInterface) -> (f32, f32, Vec2D) {
             let vertices = object.get_potential_vertex();
 
@@ -237,7 +237,7 @@ impl MoveInterface for Rectangle {
 
             let mut overlap = max1.min(max2) - min1.max(min2);
             if overlap <= 0.0 {
-                return (false, 0.0, Vec2D::default(), Vec2D::default());
+                return None;
             }
 
             if (max1 > max2 && min1 < min2) || (max1 < max2 && min1 > min2) {
@@ -252,8 +252,9 @@ impl MoveInterface for Rectangle {
                 }
             }
 
-            if let Some(j) = min_overlap {
-                if overlap < j {
+            match min_overlap {
+                Some(j) if overlap >= j => (),
+                _ => {
                     min_overlap = Some(overlap);
                     smallest_axis = axes[i];
 
@@ -269,21 +270,6 @@ impl MoveInterface for Rectangle {
                         }
                     }
                 }
-            } else {
-                min_overlap = Some(overlap);
-                smallest_axis = axes[i];
-
-                if i < 2 {
-                    main_object = false;
-                    if max1 > max2 {
-                        smallest_axis = smallest_axis.mul_n(-1.0)
-                    }
-                } else {
-                    main_object = true;
-                    if max1 < max2 {
-                        smallest_axis = smallest_axis.mul_n(-1.0)
-                    }
-                }
             }
         }
 
@@ -295,6 +281,6 @@ impl MoveInterface for Rectangle {
             smallest_axis = smallest_axis.mul_n(-1.0);
         }
 
-        (true, min_overlap.unwrap(), smallest_axis, contact_vertex)
+        Some((min_overlap.unwrap(), smallest_axis, contact_vertex))
     }
 }

@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec2D {
@@ -91,7 +91,10 @@ impl Vec2D {
         if self.len_vector(&point_zero) == 0.0 {
             point_zero
         } else {
-            Vec2D::new(self.x / self.len_vector(&point_zero), self.y / self.len_vector(&point_zero))
+            Vec2D::new(
+                self.x / self.len_vector(&point_zero),
+                self.y / self.len_vector(&point_zero),
+            )
         }
     }
 
