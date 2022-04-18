@@ -24,9 +24,13 @@ impl Rectangle {
         let direction = [edge.unit(), edge.unit()];
         let third_point = second_point + direction[0].normal().mul_n(-size.x);
         let fourth_point = third_point + direction[0].mul_n(-size.y);
-        let vertex = [[first_point, second_point, third_point, fourth_point],
-        [first_point, second_point, third_point, fourth_point]];
-        let position = first_point + direction[0].mul_n(size.y / 2.0) + direction[0].normal().mul_n(-size.x / 2.0);
+        let vertex = [
+            [first_point, second_point, third_point, fourth_point],
+            [first_point, second_point, third_point, fourth_point],
+        ];
+        let position = first_point
+            + direction[0].mul_n(size.y / 2.0)
+            + direction[0].normal().mul_n(-size.x / 2.0);
         let position = [position, position];
 
         Rectangle {
@@ -73,8 +77,8 @@ impl ObjectInterface for Rectangle {
         self.size
     }
 
-    fn get_potential_vertex(&self) -> &[Vec2D] {
-        &self.vertex[1]
+    fn get_potential_vertex(&self) -> Vec<Vec2D> {
+        (self.vertex[1]).to_vec()
     }
 
     fn get_direction(&self) -> Vec2D {
@@ -84,10 +88,7 @@ impl ObjectInterface for Rectangle {
 
 impl MoveInterface for Rectangle {
     fn tracer(&mut self, time: f32) {
-        self.position[1] += Vec2D::new(
-            self.velocity.x * time,
-            self.velocity.y * time,
-        );
+        self.position[1] += Vec2D::new(self.velocity.x * time, self.velocity.y * time);
     }
 
     fn run_with_boundaries(&mut self, plt: &Vec2D, prb: &Vec2D) {
@@ -151,16 +152,22 @@ impl MoveInterface for Rectangle {
     }
 
     fn run(&mut self, plt: Vec2D, prb: Vec2D, time: f32) {
-        // let time = 0.0101444;
-        // let time = 0.25;
         self.tracer(time);
         self.run_with_boundaries(&plt, &prb);
 
-        self.vertex[1][0] = self.position[1] + self.direction[0].mul_n(-self.size.y / 2.0) + self.direction[0].normal().mul_n(-self.size.x / 2.0);
-        self.vertex[1][1] = self.position[1] + self.direction[0].mul_n(-self.size.y / 2.0) + self.direction[0].normal().mul_n(self.size.x / 2.0);
-        self.vertex[1][2] = self.position[1] + self.direction[0].mul_n(self.size.y / 2.0) + self.direction[0].normal().mul_n(-self.size.x / 2.0);
-        self.vertex[1][3] = self.position[1] + self.direction[0].mul_n(self.size.y / 2.0) + self.direction[0].normal().mul_n(self.size.x / 2.0);
-        
+        self.vertex[1][0] = self.position[1]
+            + self.direction[0].mul_n(-self.size.y / 2.0)
+            + self.direction[0].normal().mul_n(-self.size.x / 2.0);
+        self.vertex[1][1] = self.position[1]
+            + self.direction[0].mul_n(-self.size.y / 2.0)
+            + self.direction[0].normal().mul_n(self.size.x / 2.0);
+        self.vertex[1][2] = self.position[1]
+            + self.direction[0].mul_n(self.size.y / 2.0)
+            + self.direction[0].normal().mul_n(-self.size.x / 2.0);
+        self.vertex[1][3] = self.position[1]
+            + self.direction[0].mul_n(self.size.y / 2.0)
+            + self.direction[0].normal().mul_n(self.size.x / 2.0);
+
         self.position[0] = self.position[1];
         self.vertex[0][0] = self.vertex[1][0];
         self.vertex[0][1] = self.vertex[1][1];
@@ -184,48 +191,110 @@ impl MoveInterface for Rectangle {
         true
     }
 
-    fn sat(&self, object: &dyn MoveInterface) -> bool {
-        fn projection_on_axis(axis: &Vec2D, object: &dyn MoveInterface) -> (f32, f32) {
+    fn sat(&self, object: &dyn MoveInterface) -> (bool, f32, Vec2D, Vec2D) {
+        fn projection_on_axis(axis: &Vec2D, object: &dyn MoveInterface) -> (f32, f32, Vec2D) {
+            let vertices = object.get_potential_vertex();
+
             let mut min = Vec2D::dot(axis, &object.get_potential_vertex()[0]);
             let mut max = min;
-    
-            for view_vertex in object.get_potential_vertex() {
-                let p = Vec2D::dot(axis, view_vertex);
-    
+            let mut collision_vertex = vertices[0];
+
+            for view_vertex in vertices {
+                let p = Vec2D::dot(axis, &view_vertex);
+
                 if p < min {
-                    min = p
+                    min = p;
+                    collision_vertex = view_vertex;
                 }
-    
+
                 if p > max {
                     max = p
                 }
             }
-            (max, min)
+            (max, min, collision_vertex)
         }
 
-        let axis1 = [self.get_direction().normal(), self.direction[0]];
-        let axis2 = [object.get_direction().normal(), object.get_direction()];
+        fn find_axes(object1: &dyn MoveInterface, object2: &dyn MoveInterface) -> Vec<Vec2D> {
+            let mut axis = Vec::new();
 
-        for axis in axis1 {
-            let (max1, min1) = projection_on_axis(&axis, self);
-            let (max2, min2) = projection_on_axis(&axis, object);
+            let mut axis1 = vec![object1.get_direction().normal(), object1.get_direction()];
+            let mut axis2 = vec![object2.get_direction().normal(), object2.get_direction()];
 
-            let overlap = max1.min(max2) - min1.max(min2);
+            axis.append(&mut axis1);
+            axis.append(&mut axis2);
+
+            axis
+        }
+
+        let mut axes = find_axes(self, object);
+        let mut min_overlap = None;
+        let mut smallest_axis = Vec2D::default();
+        let mut main_object = false;
+
+        for i in 0..axes.len() {
+            let (max1, min1, _) = projection_on_axis(&axes[i], self);
+            let (max2, min2, _) = projection_on_axis(&axes[i], object);
+
+            let mut overlap = max1.min(max2) - min1.max(min2);
             if overlap <= 0.0 {
-                return false
+                return (false, 0.0, Vec2D::default(), Vec2D::default());
+            }
+
+            if (max1 > max2 && min1 < min2) || (max1 < max2 && min1 > min2) {
+                let min = (min1 - min2).abs();
+                let max = (max1 - max2).abs();
+
+                if min < max {
+                    overlap += min
+                } else {
+                    overlap += max;
+                    axes[i] = axes[i].mul_n(-1.0);
+                }
+            }
+
+            if let Some(j) = min_overlap {
+                if overlap < j {
+                    min_overlap = Some(overlap);
+                    smallest_axis = axes[i];
+
+                    if i < 2 {
+                        main_object = false;
+                        if max1 > max2 {
+                            smallest_axis = smallest_axis.mul_n(-1.0)
+                        }
+                    } else {
+                        main_object = true;
+                        if max1 < max2 {
+                            smallest_axis = smallest_axis.mul_n(-1.0)
+                        }
+                    }
+                }
+            } else {
+                min_overlap = Some(overlap);
+                smallest_axis = axes[i];
+
+                if i < 2 {
+                    main_object = false;
+                    if max1 > max2 {
+                        smallest_axis = smallest_axis.mul_n(-1.0)
+                    }
+                } else {
+                    main_object = true;
+                    if max1 < max2 {
+                        smallest_axis = smallest_axis.mul_n(-1.0)
+                    }
+                }
             }
         }
 
-        for axis in axis2 {
-            let (max1, min1) = projection_on_axis(&axis, self);
-            let (max2, min2) = projection_on_axis(&axis, object);
-
-            let overlap = max1.min(max2) - min1.max(min2);
-            if overlap <= 0.0 {
-                return false
-            }
+        let contact_vertex;
+        if main_object {
+            contact_vertex = projection_on_axis(&smallest_axis, self).2;
+        } else {
+            contact_vertex = projection_on_axis(&smallest_axis, object).2;
+            smallest_axis = smallest_axis.mul_n(-1.0);
         }
 
-        true
+        (true, min_overlap.unwrap(), smallest_axis, contact_vertex)
     }
 }
