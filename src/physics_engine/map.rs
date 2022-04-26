@@ -31,7 +31,10 @@ impl Map {
             println!("len = {}, number = {}", lenght_object, i);
             for j in 0..self.dyn_objects.len() {
                 if i != j {
-                    println!("{:?}", (*self.dyn_objects[i]).sat(&(*self.dyn_objects[j])));
+                    println!(
+                        "{:?}",
+                        (*self.dyn_objects[i]).sat(self.dyn_objects[j].as_object())
+                    );
                 }
             }
         }

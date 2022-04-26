@@ -1,13 +1,15 @@
+use std::collections::HashMap;
+
 use super::traits::{MoveInterface, ObjectInterface};
 
 use super::vec2d::Vec2D;
 
 pub struct Rectangle {
-    position: [Vec2D; 2],
-    vertex: [[Vec2D; 4]; 2],
+    position: HashMap<String, Vec2D>,
+    vertex: HashMap<String, [Vec2D; 4]>,
     size: Vec2D,
     mass: f32,
-    direction: [Vec2D; 2],
+    direction: HashMap<String, Vec2D>,
     velocity: Vec2D,
 }
 
@@ -21,17 +23,29 @@ impl Rectangle {
     ) -> Rectangle {
         let edge = second_point - first_point;
         let size = Vec2D::new(width, edge.len_vector(&Vec2D::new(0.0, 0.0)));
-        let direction = [edge.unit(), edge.unit()];
-        let third_point = second_point + direction[0].normal().mul_n(-size.x);
-        let fourth_point = third_point + direction[0].mul_n(-size.y);
-        let vertex = [
-            [first_point, second_point, third_point, fourth_point],
-            [first_point, second_point, third_point, fourth_point],
-        ];
+        let direction = HashMap::from([
+            ("current".to_string(), edge.unit()),
+            ("sample".to_string(), edge.unit()),
+        ]);
+        let third_point = second_point + direction["current"].normal().mul_n(-size.x);
+        let fourth_point = third_point + direction["current"].mul_n(-size.y);
+        let vertex = HashMap::from([
+            (
+                "current".to_string(),
+                [first_point, second_point, third_point, fourth_point],
+            ),
+            (
+                "potential".to_string(),
+                [first_point, second_point, third_point, fourth_point],
+            ),
+        ]);
         let position = first_point
-            + direction[0].mul_n(size.y / 2.0)
-            + direction[0].normal().mul_n(-size.x / 2.0);
-        let position = [position, position];
+            + direction["current"].mul_n(size.y / 2.0)
+            + direction["current"].normal().mul_n(-size.x / 2.0);
+        let position = HashMap::from([
+            ("current".to_string(), position),
+            ("potential".to_string(), position),
+        ]);
 
         Rectangle {
             position,
@@ -58,19 +72,19 @@ impl Default for Rectangle {
 
 impl ObjectInterface for Rectangle {
     fn set_current_position(&mut self, position: Vec2D) {
-        self.position[0] = position
+        self.position.insert("current".to_string(), position);
     }
 
     fn set_potential_position(&mut self, position: Vec2D) {
-        self.position[1] = position
+        self.position.insert("potential".to_string(), position);
     }
 
     fn get_current_position(&self) -> Vec2D {
-        self.position[0]
+        self.position["current"]
     }
 
     fn get_potential_position(&self) -> Vec2D {
-        self.position[1]
+        self.position["potential"]
     }
 
     fn get_size(&self) -> Vec2D {
@@ -78,45 +92,66 @@ impl ObjectInterface for Rectangle {
     }
 
     fn get_potential_vertex(&self) -> Vec<Vec2D> {
-        (self.vertex[1]).to_vec()
+        (self.vertex["potential"]).to_vec()
     }
 
     fn get_direction(&self) -> Vec2D {
-        self.direction[0]
+        self.direction["current"]
     }
 }
 
 impl MoveInterface for Rectangle {
     fn tracer(&mut self, time: f32) {
-        self.position[1] += Vec2D::new(self.velocity.x * time, self.velocity.y * time);
+        self.position.insert(
+            "potential".to_string(),
+            self.position["potential"] + Vec2D::new(self.velocity.x * time, self.velocity.y * time),
+        );
     }
 
     fn run_with_boundaries(&mut self, plt: &Vec2D, prb: &Vec2D) {
         loop {
-            match self.position[1] {
+            match self.position["potential"] {
                 Vec2D { x, .. }
                     if plt.x > x - self.size.x / 2.0 || x + self.size.x / 2.0 >= prb.x =>
                 {
                     self.velocity.x = -self.velocity.x;
 
                     if plt.x > x - self.size.x / 2.0 {
-                        self.position[0] = Vec2D::cross_pointll(
-                            [&self.position[0], &self.position[1]],
-                            [plt, &Vec2D::new(plt.x, prb.y)],
-                        )
-                        .unwrap_or_else(|| Vec2D::new(plt.x, self.position[0].y))
-                            + Vec2D::new(self.size.x / 2.0, 0.0);
+                        self.position.insert(
+                            "current".to_string(),
+                            Vec2D::cross_pointll(
+                                [&self.position["current"], &self.position["potential"]],
+                                [plt, &Vec2D::new(plt.x, prb.y)],
+                            )
+                            .unwrap_or_else(|| Vec2D::new(plt.x, self.position["current"].y))
+                                + Vec2D::new(self.size.x / 2.0, 0.0),
+                        );
 
-                        self.position[1].x = 2.0 * plt.x - (x - self.size.x);
+                        self.position.insert(
+                            "potential".to_string(),
+                            Vec2D::new(
+                                2.0 * plt.x - (x - self.size.x),
+                                self.position["potential"].y,
+                            ),
+                        );
                     } else {
-                        self.position[0] = Vec2D::cross_pointll(
-                            [&self.position[0], &self.position[1]],
-                            [prb, &Vec2D::new(prb.x, plt.y)],
-                        )
-                        .unwrap_or_else(|| Vec2D::new(prb.x, self.position[0].y))
-                            - Vec2D::new(self.size.x / 2.0, 0.0);
+                        self.position.insert(
+                            "current".to_string(),
+                            Vec2D::cross_pointll(
+                                [&self.position["current"], &self.position["potential"]],
+                                [prb, &Vec2D::new(prb.x, plt.y)],
+                            )
+                            .unwrap_or_else(|| Vec2D::new(prb.x, self.position["current"].y))
+                                - Vec2D::new(self.size.x / 2.0, 0.0),
+                        );
 
-                        self.position[1].x = 2.0 * prb.x - (x + self.size.x);
+                        self.position.insert(
+                            "potential".to_string(),
+                            Vec2D::new(
+                                2.0 * prb.x - (x + self.size.x),
+                                self.position["potential"].y,
+                            ),
+                        );
                     }
                 }
                 Vec2D { y, .. }
@@ -125,23 +160,41 @@ impl MoveInterface for Rectangle {
                     self.velocity.y = -self.velocity.y;
 
                     if plt.y > y - self.size.y / 2.0 {
-                        self.position[0] = Vec2D::cross_pointll(
-                            [&self.position[0], &self.position[1]],
-                            [plt, &Vec2D::new(prb.x, plt.y)],
-                        )
-                        .unwrap_or_else(|| Vec2D::new(self.position[0].x, plt.y))
-                            + Vec2D::new(0.0, self.size.y / 2.0);
+                        self.position.insert(
+                            "current".to_string(),
+                            Vec2D::cross_pointll(
+                                [&self.position["current"], &self.position["potential"]],
+                                [plt, &Vec2D::new(prb.x, plt.y)],
+                            )
+                            .unwrap_or_else(|| Vec2D::new(self.position["current"].x, plt.y))
+                                + Vec2D::new(0.0, self.size.y / 2.0),
+                        );
 
-                        self.position[1].y = 2.0 * plt.y - (y - self.size.y);
+                        self.position.insert(
+                            "potential".to_string(),
+                            Vec2D::new(
+                                self.position["potential"].x,
+                                2.0 * plt.y - (y - self.size.y),
+                            ),
+                        );
                     } else {
-                        self.position[0] = Vec2D::cross_pointll(
-                            [&self.position[0], &self.position[1]],
-                            [prb, &Vec2D::new(plt.x, prb.y)],
-                        )
-                        .unwrap_or_else(|| Vec2D::new(self.position[0].x, prb.y))
-                            - Vec2D::new(0.0, self.size.y / 2.0);
+                        self.position.insert(
+                            "current".to_string(),
+                            Vec2D::cross_pointll(
+                                [&self.position["current"], &self.position["potential"]],
+                                [prb, &Vec2D::new(plt.x, prb.y)],
+                            )
+                            .unwrap_or_else(|| Vec2D::new(self.position["current"].x, prb.y))
+                                - Vec2D::new(0.0, self.size.y / 2.0),
+                        );
 
-                        self.position[1].y = 2.0 * prb.y - (y + self.size.y);
+                        self.position.insert(
+                            "potential".to_string(),
+                            Vec2D::new(
+                                self.position["potential"].x,
+                                2.0 * prb.y - (y + self.size.y),
+                            ),
+                        );
                     }
                 }
                 _ => {
@@ -155,44 +208,49 @@ impl MoveInterface for Rectangle {
         self.tracer(time);
         self.run_with_boundaries(&plt, &prb);
 
-        self.vertex[1][0] = self.position[1]
-            + self.direction[0].mul_n(-self.size.y / 2.0)
-            + self.direction[0].normal().mul_n(-self.size.x / 2.0);
-        self.vertex[1][1] = self.position[1]
-            + self.direction[0].mul_n(-self.size.y / 2.0)
-            + self.direction[0].normal().mul_n(self.size.x / 2.0);
-        self.vertex[1][2] = self.position[1]
-            + self.direction[0].mul_n(self.size.y / 2.0)
-            + self.direction[0].normal().mul_n(-self.size.x / 2.0);
-        self.vertex[1][3] = self.position[1]
-            + self.direction[0].mul_n(self.size.y / 2.0)
-            + self.direction[0].normal().mul_n(self.size.x / 2.0);
+        self.vertex.insert(
+            "potential".to_string(),
+            [
+                self.position["potential"]
+                    + self.direction["current"].mul_n(-self.size.y / 2.0)
+                    + self.direction["current"].normal().mul_n(-self.size.x / 2.0),
+                self.position["potential"]
+                    + self.direction["current"].mul_n(-self.size.y / 2.0)
+                    + self.direction["current"].normal().mul_n(self.size.x / 2.0),
+                self.position["potential"]
+                    + self.direction["current"].mul_n(self.size.y / 2.0)
+                    + self.direction["current"].normal().mul_n(-self.size.x / 2.0),
+                self.position["potential"]
+                    + self.direction["current"].mul_n(self.size.y / 2.0)
+                    + self.direction["current"].normal().mul_n(self.size.x / 2.0),
+            ],
+        );
 
-        self.position[0] = self.position[1];
-        self.vertex[0][0] = self.vertex[1][0];
-        self.vertex[0][1] = self.vertex[1][1];
-        self.vertex[0][2] = self.vertex[1][2];
-        self.vertex[0][3] = self.vertex[1][3];
+        self.position
+            .insert("current".to_string(), self.position["potential"]);
+        self.vertex.insert(
+            "current".to_string(),
+            [
+                self.vertex["potential"][0],
+                self.vertex["potential"][1],
+                self.vertex["potential"][2],
+                self.vertex["potential"][3],
+            ],
+        );
+
         println!(
             "x = {}, y = {}, velocity = {:?}, direction = {:?}, size = {:?}, time = {}",
-            self.position[1].x, self.position[1].y, self.velocity, self.direction, self.size, time
+            self.position["current"].x,
+            self.position["current"].y,
+            self.velocity,
+            self.direction,
+            self.size,
+            time
         );
     }
 
-    fn check_collision(&self, position: Vec2D, size: Vec2D) -> bool {
-        if (self.position[1].x - position.x).abs() > (self.size.x + size.x) / 2.0 {
-            return false;
-        }
-
-        if (self.position[1].y - position.y).abs() > (self.size.y + size.y) / 2.0 {
-            return false;
-        }
-
-        true
-    }
-
-    fn sat(&self, object: &dyn MoveInterface) -> Option<(f32, Vec2D, Vec2D)> {
-        fn projection_on_axis(axis: &Vec2D, object: &dyn MoveInterface) -> (f32, f32, Vec2D) {
+    fn sat(&self, object: &dyn ObjectInterface) -> Option<(f32, Vec2D, Vec2D)> {
+        fn projection_on_axis(axis: &Vec2D, object: &dyn ObjectInterface) -> (f32, f32, Vec2D) {
             let vertices = object.get_potential_vertex();
 
             let mut min = Vec2D::dot(axis, &object.get_potential_vertex()[0]);
@@ -214,7 +272,7 @@ impl MoveInterface for Rectangle {
             (max, min, collision_vertex)
         }
 
-        fn find_axes(object1: &dyn MoveInterface, object2: &dyn MoveInterface) -> Vec<Vec2D> {
+        fn find_axes(object1: &dyn ObjectInterface, object2: &dyn ObjectInterface) -> Vec<Vec2D> {
             let mut axis = Vec::new();
 
             let mut axis1 = vec![object1.get_direction().normal(), object1.get_direction()];
