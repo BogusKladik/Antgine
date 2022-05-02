@@ -1,19 +1,30 @@
 use std::f32::consts::PI;
 
-struct Angle {
+pub struct Angle {
     radian: f32,
 }
 
+impl Default for Angle {
+    fn default() -> Self {
+        Angle::new(0.0)
+    }
+}
+
 impl Angle {
-    pub fn get_radian(&mut self) -> f32 {
-        while !(0.0..=2.0 * PI).contains(&self.radian) {
-            if self.radian > 2.0 * PI {
-                self.radian -= 2.0 * PI;
+    pub fn new(radian: f32) -> Self {
+        let mut temp_radian = radian;
+        while !(0.0..=2.0 * PI).contains(&temp_radian) {
+            if temp_radian > 2.0 * PI {
+                temp_radian -= 2.0 * PI;
             } else {
-                self.radian += 2.0 * PI;
+                temp_radian += 2.0 * PI;
             }
         }
 
+        Angle { radian: temp_radian }
+    }
+
+    pub fn get_radian(&self) -> f32 {
         self.radian
     }
 
