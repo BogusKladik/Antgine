@@ -28,14 +28,12 @@ impl Map {
         let lenght_object = self.dyn_objects.len();
         for i in 0..self.dyn_objects.len() {
             (*self.dyn_objects[i]).run(plt, prb, time);
-            println!("len = {}, number = {}", lenght_object, i);
-            for j in 0..self.dyn_objects.len() {
-                if i != j {
-                    println!(
-                        "{:?}",
-                        (*self.dyn_objects[i]).sat(self.dyn_objects[j].as_object())
-                    );
-                }
+            for j in (i + 1)..self.dyn_objects.len() {
+                println!("len = {}, number1 = {}, number2 = {}", lenght_object, i, j);
+                println!(
+                    "{:?}",
+                    (*self.dyn_objects[i]).sat(self.dyn_objects[j].as_object())
+                );
             }
         }
     }
