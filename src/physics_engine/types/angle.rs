@@ -21,7 +21,9 @@ impl Angle {
             }
         }
 
-        Angle { radian: temp_radian }
+        Angle {
+            radian: temp_radian,
+        }
     }
 
     pub fn get_radian(&self) -> f32 {

@@ -1,11 +1,9 @@
-pub mod map;
-
-pub mod rectangle;
+pub mod types;
 
 pub mod traits;
 
-pub mod vec2d;
+pub mod objects;
 
-pub mod matrix2d;
+pub mod map;
 
-pub mod angle;
+pub mod collision;

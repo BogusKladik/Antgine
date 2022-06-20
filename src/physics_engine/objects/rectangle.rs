@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
-use super::traits::{MoveInterface, ObjectInterface};
-
-use super::vec2d::Vec2D;
+use crate::physics_engine::{
+    traits::{MoveInterface::MoveInterface, ObjectInterface::ObjectInterface},
+    types::{vec2d::Vec2D, angle::Angle},
+};
 
 pub struct Rectangle {
     position: HashMap<String, Vec2D>,

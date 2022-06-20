@@ -1,6 +1,7 @@
-use super::traits::{MoveInterface, ObjectInterface};
-
-use super::vec2d::Vec2D;
+use super::{
+    traits::{MoveInterface::MoveInterface, ObjectInterface::ObjectInterface},
+    types::vec2d::Vec2D,
+};
 
 pub struct Map {
     plt: Vec2D,
