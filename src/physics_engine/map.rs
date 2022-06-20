@@ -1,5 +1,5 @@
 use super::{
-    traits::{MoveInterface::MoveInterface, ObjectInterface::ObjectInterface},
+    traits::{move_interface::MoveInterface, object_interface::ObjectInterface},
     types::vec2d::Vec2D,
 };
 

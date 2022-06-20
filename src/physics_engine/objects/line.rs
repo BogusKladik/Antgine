@@ -2,13 +2,14 @@
 use std::collections::HashMap;
 
 use crate::physics_engine::{
-    traits::{MoveInterface::MoveInterface, ObjectInterface::ObjectInterface},
+    traits::{move_interface::MoveInterface, object_interface::ObjectInterface},
     types::{vec2d::Vec2D, angle::Angle},
 };
 
 pub struct Line {
     position: HashMap<String, Vec2D>,
     vertex: HashMap<String, [Vec2D; 2]>,
+    size: Vec2D,
     direction: HashMap<String, Vec2D>,
     mass: f32,
     inertia: f32,
@@ -16,7 +17,7 @@ pub struct Line {
     velocity: Vec2D,
     friction: f32,
     angle: Angle,
-    angle_velocity: Angle,
+    angle_velocity: f32,
     angle_friction: f32,
 }
 
@@ -28,7 +29,7 @@ impl Line {
         elasticity: f32,
         velocity: Vec2D,
         friction: f32,
-        angle_velocity: Angle,
+        angle_velocity: f32,
         angle_friction: f32,
     ) -> Line {
         let vertex = HashMap::from([
@@ -55,12 +56,14 @@ impl Line {
                 ),
             ),
         ]);
-        let inertia = mass * (first_point.len_vector(&second_point)).powf(2.0) / 12.0;
+        let size = Vec2D::new(first_point.len_vector(&second_point), 0.0);
+        let inertia = mass * size.x.powf(2.0) / 12.0;
         let angle = Angle::default();
 
         Line {
             position,
             vertex,
+            size,
             direction,
             mass,
             inertia,

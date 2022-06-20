@@ -1,6 +1,6 @@
 use crate::physics_engine::types::vec2d::Vec2D;
 
-use super::ObjectInterface::ObjectInterface;
+use super::object_interface::ObjectInterface;
 
 pub trait MoveInterface: ObjectInterface {
     fn tracer(&mut self, time: f32);

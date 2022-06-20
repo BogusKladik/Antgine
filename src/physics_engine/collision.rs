@@ -1,4 +1,4 @@
-use super::{traits::ObjectInterface::ObjectInterface, types::vec2d::Vec2D};
+use super::{traits::object_interface::ObjectInterface, types::vec2d::Vec2D};
 
 struct Collision {
     object1: Box<dyn ObjectInterface>,

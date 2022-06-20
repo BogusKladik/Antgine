@@ -1,6 +1,6 @@
 use crate::physics_engine::types::vec2d::Vec2D;
 
-use super::AsObject::AsObject;
+use super::as_object::AsObject;
 
 pub trait ObjectInterface: AsObject {
     fn set_current_position(&mut self, position: Vec2D);

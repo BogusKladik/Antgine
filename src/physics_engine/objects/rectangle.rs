@@ -1,17 +1,23 @@
 use std::collections::HashMap;
 
 use crate::physics_engine::{
-    traits::{MoveInterface::MoveInterface, ObjectInterface::ObjectInterface},
-    types::{vec2d::Vec2D, angle::Angle},
+    traits::{move_interface::MoveInterface, object_interface::ObjectInterface},
+    types::{angle::Angle, vec2d::Vec2D},
 };
 
 pub struct Rectangle {
     position: HashMap<String, Vec2D>,
     vertex: HashMap<String, [Vec2D; 4]>,
     size: Vec2D,
-    mass: f32,
     direction: HashMap<String, Vec2D>,
+    mass: f32,
+    inertia: f32,
+    elasticity: f32,
     velocity: Vec2D,
+    friction: f32,
+    angle: Angle,
+    angle_velocity: f32,
+    angle_friction: f32,
 }
 
 impl Rectangle {
@@ -20,7 +26,11 @@ impl Rectangle {
         second_point: Vec2D,
         width: f32,
         mass: f32,
+        elasticity: f32,
         velocity: Vec2D,
+        friction: f32,
+        angle_velocity: f32,
+        angle_friction: f32,
     ) -> Rectangle {
         let edge = second_point - first_point;
         let size = Vec2D::new(width, edge.len_vector(&Vec2D::new(0.0, 0.0)));
@@ -47,14 +57,22 @@ impl Rectangle {
             ("current".to_string(), position),
             ("potential".to_string(), position),
         ]);
+        let inertia = mass * (size.x.powf(2.0) + size.y.powf(2.0)) / 12.0;
+        let angle = Angle::default();
 
         Rectangle {
             position,
             vertex,
             size,
-            mass,
             direction,
+            mass,
+            inertia,
+            elasticity,
             velocity,
+            friction,
+            angle,
+            angle_velocity,
+            angle_friction,
         }
     }
 }
@@ -66,7 +84,11 @@ impl Default for Rectangle {
             Vec2D::new(0.0, 20.0),
             20.0,
             10.0,
+            1.0,
             Vec2D::new(100.0, 0.0),
+            0.01,
+            0.0,
+            0.01,
         )
     }
 }

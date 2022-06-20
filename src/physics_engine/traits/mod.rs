@@ -1,5 +1,5 @@
-pub mod AsObject;
+pub mod as_object;
 
-pub mod ObjectInterface;
+pub mod object_interface;
 
-pub mod MoveInterface;
+pub mod move_interface;

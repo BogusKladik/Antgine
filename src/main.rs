@@ -23,12 +23,16 @@ fn main() {
         Vec2D::new(1900.0, 20.0),
         20.0,
         10.0,
+        1.0,
         Vec2D::new(-100.0, 0.0),
+        0.01,
+        0.0,
+        0.01,
     );
     println!(
         "{:?} {:?}",
-        physics_engine::traits::ObjectInterface::ObjectInterface::get_current_position(&a),
-        physics_engine::traits::ObjectInterface::ObjectInterface::get_size(&a)
+        physics_engine::traits::object_interface::ObjectInterface::get_current_position(&a),
+        physics_engine::traits::object_interface::ObjectInterface::get_size(&a)
     );
     println!("{}", mem::size_of_val(&a));
     map.dyn_objects.push(Box::new(a));
