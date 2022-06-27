@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 
+#[derive(Debug, Copy, Clone)]
 pub struct Angle {
     radian: f32,
 }
