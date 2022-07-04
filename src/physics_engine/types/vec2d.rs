@@ -102,6 +102,10 @@ impl Vec2D {
         vector1.x * vector2.x + vector1.y * vector2.y
     }
 
+    pub fn cross(vector1: &Vec2D, vector2: &Vec2D) -> f32 {
+        vector1.x * vector2.y - vector1.y * vector2.x
+    }
+
     pub fn normal(&self) -> Vec2D {
         Vec2D::new(-self.y, self.x)
     }

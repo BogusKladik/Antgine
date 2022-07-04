@@ -156,6 +156,14 @@ impl ObjectInterface for Rectangle {
         self.inertia
     }
 
+    fn get_inversion_inertia(&self) -> f32 {
+        if self.inertia == 0.0 {
+            0.0
+        } else {
+            1.0 / self.inertia
+        }
+    }
+
     fn set_elasticity(&mut self, elasticity: f32) {
         self.elasticity = elasticity;
     }

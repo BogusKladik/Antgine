@@ -17,6 +17,7 @@ pub trait ObjectInterface: AsObject {
     fn get_mass(&self) -> f32;
     fn get_inversion_mass(&self) -> f32;
     fn get_inertia(&self) -> f32;
+    fn get_inversion_inertia(&self) -> f32;
     fn set_elasticity(&mut self, elasticity: f32);
     fn get_elasticity(&self) -> f32;
     fn set_velocity(&mut self, velocity: Vec2D);

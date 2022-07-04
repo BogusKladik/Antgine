@@ -155,6 +155,14 @@ impl ObjectInterface for Line{
         self.inertia
     }
 
+    fn get_inversion_inertia(&self) -> f32 {
+        if self.inertia == 0.0 {
+            0.0
+        } else {
+            1.0 / self.inertia
+        }
+    }
+
     fn set_elasticity(&mut self, elasticity: f32) {
         self.elasticity = elasticity;
     }
@@ -201,5 +209,23 @@ impl ObjectInterface for Line{
 
     fn get_angle_friction(&self) -> f32 {
         self.angle_friction
+    }
+}
+
+impl MoveInterface for Line {
+    fn tracer(&mut self, time: f32) {
+        todo!()
+    }
+
+    fn run_with_boundaries(&mut self, plt: &Vec2D, prb: &Vec2D) {
+        todo!()
+    }
+
+    fn run(&mut self, plt: Vec2D, prb: Vec2D, time: f32) {
+        todo!()
+    }
+
+    fn sat(&self, object: &dyn ObjectInterface) -> Option<(f32, Vec2D, Vec2D)> {
+        todo!()
     }
 }

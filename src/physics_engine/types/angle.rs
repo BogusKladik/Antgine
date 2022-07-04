@@ -5,12 +5,6 @@ pub struct Angle {
     radian: f32,
 }
 
-impl Default for Angle {
-    fn default() -> Self {
-        Angle::new(0.0)
-    }
-}
-
 impl Angle {
     pub fn new(radian: f32) -> Self {
         let mut temp_radian = radian;
@@ -43,5 +37,12 @@ impl Angle {
         }
 
         self.radian = filtered_angle
+    }
+}
+
+
+impl Default for Angle {
+    fn default() -> Self {
+        Angle::new(0.0)
     }
 }
