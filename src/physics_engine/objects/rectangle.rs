@@ -1,10 +1,11 @@
 use std::{collections::HashMap, convert::TryInto};
 
-use crate::physics_engine::{
+use super::super::{
     traits::{move_interface::MoveInterface, object_interface::ObjectInterface},
-    types::{angle::Angle, vec2d::Vec2D},
+    types::{angle::Angle, vec2d::Vec2D, matrix2d::Matrix2D},
 };
 
+/// Rectangle structure
 pub struct Rectangle {
     position: HashMap<String, Vec2D>,
     vertex: HashMap<String, [Vec2D; 4]>,
@@ -21,6 +22,7 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
+    /// Creating a rectangle
     pub fn new(
         first_point: Vec2D,
         second_point: Vec2D,
@@ -123,7 +125,8 @@ impl ObjectInterface for Rectangle {
     }
 
     fn set_potential_vertex(&mut self, vertex: Vec<Vec2D>) {
-        self.vertex.insert("potential".to_string(), vertex.try_into().unwrap());
+        self.vertex
+            .insert("potential".to_string(), vertex.try_into().unwrap());
     }
 
     fn set_size(&mut self, size: Vec2D) {
@@ -211,6 +214,14 @@ impl ObjectInterface for Rectangle {
     fn get_angle_friction(&self) -> f32 {
         self.angle_friction
     }
+
+    fn get_circumradius(&self) -> f32 {
+        (self.size.x.powf(2.0) + self.size.y.powf(2.0)).powf(0.5) / 2.0
+    }
+
+    fn get_axis(&self) -> Vec<Vec2D> {
+        vec![self.get_direction().normal(), self.get_direction()]
+    }
 }
 
 impl MoveInterface for Rectangle {
@@ -219,107 +230,14 @@ impl MoveInterface for Rectangle {
             "potential".to_string(),
             self.position["potential"] + Vec2D::new(self.velocity.x * time, self.velocity.y * time),
         );
-    }
 
-    fn run_with_boundaries(&mut self, plt: &Vec2D, prb: &Vec2D) {
-        loop {
-            match self.position["potential"] {
-                Vec2D { x, .. }
-                    if plt.x > x - self.size.x / 2.0 || x + self.size.x / 2.0 >= prb.x =>
-                {
-                    self.velocity.x = -self.velocity.x;
-
-                    if plt.x > x - self.size.x / 2.0 {
-                        self.position.insert(
-                            "current".to_string(),
-                            Vec2D::cross_pointll(
-                                [&self.position["current"], &self.position["potential"]],
-                                [plt, &Vec2D::new(plt.x, prb.y)],
-                            )
-                            .unwrap_or_else(|| Vec2D::new(plt.x, self.position["current"].y))
-                                + Vec2D::new(self.size.x / 2.0, 0.0),
-                        );
-
-                        self.position.insert(
-                            "potential".to_string(),
-                            Vec2D::new(
-                                2.0 * plt.x - (x - self.size.x),
-                                self.position["potential"].y,
-                            ),
-                        );
-                    } else {
-                        self.position.insert(
-                            "current".to_string(),
-                            Vec2D::cross_pointll(
-                                [&self.position["current"], &self.position["potential"]],
-                                [prb, &Vec2D::new(prb.x, plt.y)],
-                            )
-                            .unwrap_or_else(|| Vec2D::new(prb.x, self.position["current"].y))
-                                - Vec2D::new(self.size.x / 2.0, 0.0),
-                        );
-
-                        self.position.insert(
-                            "potential".to_string(),
-                            Vec2D::new(
-                                2.0 * prb.x - (x + self.size.x),
-                                self.position["potential"].y,
-                            ),
-                        );
-                    }
-                }
-                Vec2D { y, .. }
-                    if plt.y > y - self.size.y / 2.0 || y + self.size.y / 2.0 >= prb.y =>
-                {
-                    self.velocity.y = -self.velocity.y;
-
-                    if plt.y > y - self.size.y / 2.0 {
-                        self.position.insert(
-                            "current".to_string(),
-                            Vec2D::cross_pointll(
-                                [&self.position["current"], &self.position["potential"]],
-                                [plt, &Vec2D::new(prb.x, plt.y)],
-                            )
-                            .unwrap_or_else(|| Vec2D::new(self.position["current"].x, plt.y))
-                                + Vec2D::new(0.0, self.size.y / 2.0),
-                        );
-
-                        self.position.insert(
-                            "potential".to_string(),
-                            Vec2D::new(
-                                self.position["potential"].x,
-                                2.0 * plt.y - (y - self.size.y),
-                            ),
-                        );
-                    } else {
-                        self.position.insert(
-                            "current".to_string(),
-                            Vec2D::cross_pointll(
-                                [&self.position["current"], &self.position["potential"]],
-                                [prb, &Vec2D::new(plt.x, prb.y)],
-                            )
-                            .unwrap_or_else(|| Vec2D::new(self.position["current"].x, prb.y))
-                                - Vec2D::new(0.0, self.size.y / 2.0),
-                        );
-
-                        self.position.insert(
-                            "potential".to_string(),
-                            Vec2D::new(
-                                self.position["potential"].x,
-                                2.0 * prb.y - (y + self.size.y),
-                            ),
-                        );
-                    }
-                }
-                _ => {
-                    break;
-                }
-            }
-        }
-    }
-
-    fn run(&mut self, plt: Vec2D, prb: Vec2D, time: f32) {
-        self.tracer(time);
-        self.run_with_boundaries(&plt, &prb);
+        self.angle = Angle::new(self.angle.get_radian() + self.angle_velocity);
+        self.angle_velocity *= 1.0 - self.angle_friction;
+        let rotation_matrix = Matrix2D::rotation_matrix(&self.angle);
+        self.direction.insert(
+            "current".to_string(),
+            rotation_matrix.multiply_vec2d(&self.direction["sample"])
+        );
 
         self.vertex.insert(
             "potential".to_string(),
@@ -338,6 +256,10 @@ impl MoveInterface for Rectangle {
                     + self.direction["current"].normal().mul_n(self.size.x / 2.0),
             ],
         );
+    }
+
+    fn run(&mut self, time: f32) {
+        self.tracer(time);
 
         self.position
             .insert("current".to_string(), self.position["potential"]);
@@ -351,6 +273,7 @@ impl MoveInterface for Rectangle {
             ],
         );
 
+        // Debug
         println!(
             "x = {}, y = {}, velocity = {:?}, direction = {:?}, size = {:?}, time = {}",
             self.position["current"].x,
@@ -363,13 +286,16 @@ impl MoveInterface for Rectangle {
     }
 
     fn sat(&self, object: &dyn ObjectInterface) -> Option<(f32, Vec2D, Vec2D)> {
+        /// Auxiliary function for finding the projections of points on the axis
         fn projection_on_axis(axis: &Vec2D, object: &dyn ObjectInterface) -> (f32, f32, Vec2D) {
             let vertices = object.get_potential_vertex();
 
+            // initializes the min and max location of the point relative to the axis, and the vertex where the collision is
             let mut min = Vec2D::dot(axis, &object.get_potential_vertex()[0]);
             let mut max = min;
             let mut collision_vertex = vertices[0];
 
+            // considers all vertices to find the answer
             for view_vertex in vertices {
                 let p = Vec2D::dot(axis, &view_vertex);
 
@@ -385,23 +311,16 @@ impl MoveInterface for Rectangle {
             (max, min, collision_vertex)
         }
 
-        fn find_axes(object1: &dyn ObjectInterface, object2: &dyn ObjectInterface) -> Vec<Vec2D> {
-            let mut axis = Vec::new();
+        // creates an array of axes of 2 objects
+        let mut axes = self.get_axis();
+        axes.extend(object.get_axis().iter());
 
-            let mut axis1 = vec![object1.get_direction().normal(), object1.get_direction()];
-            let mut axis2 = vec![object2.get_direction().normal(), object2.get_direction()];
-
-            axis.append(&mut axis1);
-            axis.append(&mut axis2);
-
-            axis
-        }
-
-        let mut axes = find_axes(self, object);
+        // initializes variables responsible for the minimum filling of one object with another, the smallest axis where the collision occurs, and whether the object in question is the main one
         let mut min_overlap = None;
         let mut smallest_axis = Vec2D::default();
         let mut main_object = false;
 
+        // looks at the projections if there is an overflow
         for i in 0..axes.len() {
             let (max1, min1, _) = projection_on_axis(&axes[i], self);
             let (max2, min2, _) = projection_on_axis(&axes[i], object);
@@ -423,6 +342,7 @@ impl MoveInterface for Rectangle {
                 }
             }
 
+            // searches for the minimum overflow among overflows
             match min_overlap {
                 Some(j) if overlap >= j => (),
                 _ => {
@@ -444,6 +364,7 @@ impl MoveInterface for Rectangle {
             }
         }
 
+        // changes contact vertex and minor axis, depending on whether the object is the main one
         let contact_vertex;
         if main_object {
             contact_vertex = projection_on_axis(&smallest_axis, self).2;
@@ -453,5 +374,11 @@ impl MoveInterface for Rectangle {
         }
 
         Some((min_overlap.unwrap(), smallest_axis, contact_vertex))
+    }
+
+    fn intersection_circumscribed_circles(&self, object: &dyn ObjectInterface) -> bool {
+        self.get_potential_position()
+            .len_vector(&object.get_potential_position())
+            < self.get_circumradius() + object.get_circumradius()
     }
 }

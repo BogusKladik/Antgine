@@ -30,6 +30,8 @@ pub trait ObjectInterface: AsObject {
     fn get_angle_velocity(&self) -> f32;
     fn set_angle_friction(&mut self, angle_friction: f32);
     fn get_angle_friction(&self) -> f32;
+    fn get_circumradius(&self) -> f32;
+    fn get_axis(&self) -> Vec<Vec2D>;
 }
 
 impl<T: ObjectInterface> AsObject for T {

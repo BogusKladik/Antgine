@@ -1,5 +1,6 @@
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
+/// Structure of a 2D vector
 #[derive(Debug, Copy, Clone)]
 pub struct Vec2D {
     pub x: f32,
@@ -13,10 +14,12 @@ impl Default for Vec2D {
 }
 
 impl Vec2D {
+    /// Creating a vector
     pub fn new(x: f32, y: f32) -> Self {
         Vec2D { x, y }
     }
 
+    /// Calculates the point of intersection of vectors
     pub fn cross_pointvv(first_vector: [&Vec2D; 2], second_vector: [&Vec2D; 2]) -> Option<Vec2D> {
         let x1 = first_vector[0].x;
         let y1 = first_vector[0].y;
@@ -55,6 +58,7 @@ impl Vec2D {
         }
     }
 
+    /// Calculates the point of intersection of lines
     pub fn cross_pointll(first_line: [&Vec2D; 2], second_line: [&Vec2D; 2]) -> Option<Vec2D> {
         let x1 = first_line[0].x;
         let y1 = first_line[0].y;
@@ -81,10 +85,12 @@ impl Vec2D {
         }
     }
 
+    /// Calculates the length of a vector
     pub fn len_vector(&self, point: &Vec2D) -> f32 {
         ((self.x - point.x).powf(2.0) + (self.y - point.y).powf(2.0)).powf(0.5)
     }
 
+    /// Creates a unit vector from a vector
     pub fn unit(&self) -> Vec2D {
         let point_zero = Vec2D::new(0.0, 0.0);
 
@@ -98,18 +104,22 @@ impl Vec2D {
         }
     }
 
+    /// Calculates dot product
     pub fn dot(vector1: &Vec2D, vector2: &Vec2D) -> f32 {
         vector1.x * vector2.x + vector1.y * vector2.y
     }
 
+    /// Calculates the cross product
     pub fn cross(vector1: &Vec2D, vector2: &Vec2D) -> f32 {
         vector1.x * vector2.y - vector1.y * vector2.x
     }
 
+    /// Creates a normal to a vector
     pub fn normal(&self) -> Vec2D {
         Vec2D::new(-self.y, self.x)
     }
 
+    /// Multiplies all components of a vector by a number
     pub fn mul_n(&self, n: f32) -> Vec2D {
         *self * Vec2D::new(n, n)
     }

@@ -2,6 +2,7 @@ use super::vec2d::Vec2D;
 
 use super::angle::Angle;
 
+/// 2x2 Matrix structure
 pub struct Matrix2D {
     data: [[f32; 2]; 2],
 }
@@ -28,7 +29,8 @@ impl Matrix2D {
         self.data[1][1] = matrix[1][1];
     }
 
-    pub fn rotation_matrix(angle: &mut Angle) -> Self {
+    /// Creates a rotation matrix
+    pub fn rotation_matrix(angle: &Angle) -> Self {
         Matrix2D::new(
             angle.get_radian().cos(),
             -angle.get_radian().sin(),
@@ -37,11 +39,13 @@ impl Matrix2D {
         )
     }
 
+    /// Creating a matrix
     pub fn new(a11: f32, a12: f32, a21: f32, a22: f32) -> Self {
         let data = [[a11, a12], [a21, a22]];
         Matrix2D { data }
     }
 
+    /// Multiplies a matrix by a vector
     pub fn multiply_vec2d(&self, vector: &Vec2D) -> Vec2D {
         Vec2D::new(
             self.data[0][0] * vector.x + self.data[0][1] * vector.y,

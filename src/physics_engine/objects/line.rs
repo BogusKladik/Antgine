@@ -1,11 +1,12 @@
 // TODO: Add functions for lines to make a map constraint out of lines
 use std::{collections::HashMap, convert::TryInto};
 
-use crate::physics_engine::{
+use super::super::{
     traits::{move_interface::MoveInterface, object_interface::ObjectInterface},
     types::{angle::Angle, vec2d::Vec2D},
 };
 
+/// Line structure
 pub struct Line {
     position: HashMap<String, Vec2D>,
     vertex: HashMap<String, [Vec2D; 2]>,
@@ -22,6 +23,7 @@ pub struct Line {
 }
 
 impl Line {
+    /// Creating a line
     pub fn new(
         first_point: Vec2D,
         second_point: Vec2D,
@@ -210,6 +212,14 @@ impl ObjectInterface for Line{
     fn get_angle_friction(&self) -> f32 {
         self.angle_friction
     }
+
+    fn get_circumradius(&self) -> f32 {
+        self.size.x / 2.0
+    }
+
+    fn get_axis(&self) -> Vec<Vec2D> {
+        vec![self.get_direction().normal()]
+    }
 }
 
 impl MoveInterface for Line {
@@ -217,11 +227,11 @@ impl MoveInterface for Line {
         todo!()
     }
 
-    fn run_with_boundaries(&mut self, plt: &Vec2D, prb: &Vec2D) {
+    fn run(&mut self, time: f32) {
         todo!()
     }
 
-    fn run(&mut self, plt: Vec2D, prb: Vec2D, time: f32) {
+    fn intersection_circumscribed_circles(&self, object: &dyn ObjectInterface) -> bool {
         todo!()
     }
 

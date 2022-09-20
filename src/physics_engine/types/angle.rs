@@ -1,11 +1,13 @@
 use std::f32::consts::PI;
 
+/// Angle structure
 #[derive(Debug, Copy, Clone)]
 pub struct Angle {
     radian: f32,
 }
 
 impl Angle {
+    /// Creating a angle
     pub fn new(radian: f32) -> Self {
         let mut temp_radian = radian;
         while !(0.0..=2.0 * PI).contains(&temp_radian) {
