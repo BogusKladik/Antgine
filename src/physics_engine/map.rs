@@ -1,7 +1,7 @@
 use super::{
-    objects::line::Line,
+    objects::{line::Line, rectangle::Rectangle},
     traits::{move_interface::MoveInterface, object_interface::ObjectInterface},
-    types::vec2d::Vec2D,
+    types::{vec2d::Vec2D, angle::Angle},
     collision::Collision,
 };
 
@@ -64,6 +64,20 @@ impl Map {
         )));
     }
 
+    pub fn test_rectangle(&mut self) {
+        self.objects.push(Box::new(Rectangle::new(
+            Vec2D::new(1920.0, 0.0),
+            Vec2D::new(1920.0, 20.0),
+            20.0,
+            0.0,
+            1.0,
+            Vec2D::default(),
+            0.0,
+            0.0,
+            0.0
+        )));
+    }
+
     /// Start movement of objects belonging to this map
     pub fn run(&mut self, time: f32) {
         let mut collisions = Vec::<Collision>::new();
@@ -79,18 +93,16 @@ impl Map {
                 // checks circumscribed circles for collision
                 if (*self.dyn_objects[i]).intersection_circumscribed_circles(&(*self.objects[j])) {
                     // checks for collision using the sat method
-                    match (*self.dyn_objects[i]).sat(&(*self.objects[j])) {
-                        Some((min_overlap, smallest_axis, contact_vertex)) => {
-                            // TODO: here you need to fix the bug if you uncomment the code below. Without this line there will be no collision
-                            // Error here
-                            // Collision::new(Box::new(self.dyn_objects[i].as_object()), self.objects[j], min_overlap, smallest_axis, contact_vertex);
-                        },
-                        None => (),
+                    if let Some((min_overlap, smallest_axis, contact_vertex)) = (*self.dyn_objects[i]).sat(&(*self.objects[j])) {
+                        let mut a = Collision::new(self.dyn_objects[i].as_mut_object(), self.objects[j].as_mut_object(), min_overlap, smallest_axis, contact_vertex);
+                        a.divide_objects();
+                        a.change_energy()
                     }
                 }
             }
         }
 
+        // TODO: Either delete the array, or increase the scope of Collision
         // resolves collision
         while let Some(mut collision) = collisions.pop() {
             collision.divide_objects();
@@ -125,6 +137,28 @@ impl Map {
         for i in 0..self.dyn_objects.len() {
             (*self.dyn_objects[i]).run(time);
         }
+    }
+
+    pub fn create_data(&self) -> (Vec<Vec2D>, Vec<Angle>) {
+        let mut pos = Vec::with_capacity(self.dyn_objects.len() + self.objects.len());
+        for dyn_object in &self.dyn_objects {
+            pos.push(dyn_object.get_current_position());
+        }
+
+        for object in &self.objects {
+            pos.push(object.get_current_position());
+        }
+
+        let mut ang = Vec::with_capacity(self.dyn_objects.len() + self.objects.len());
+        for dyn_object in &self.dyn_objects {
+            ang.push(dyn_object.get_angle());
+        }
+
+        for object in &self.objects {
+            ang.push(object.get_angle());
+        }
+
+        (pos, ang)
     }
 }
 

@@ -1,19 +1,19 @@
 use super::{traits::object_interface::ObjectInterface, types::vec2d::Vec2D};
 
 /// A structure that solves the collision of two objects
-pub struct Collision {
-    object1: Box<dyn ObjectInterface>,
-    object2: Box<dyn ObjectInterface>,
+pub struct Collision<'a> {
+    object1: &'a mut dyn ObjectInterface,
+    object2: &'a mut dyn ObjectInterface,
     min_overlap: f32,
     smallest_axis: Vec2D,
     contact_vertex: Vec2D,
 }
 
-impl Collision {
+impl<'a> Collision<'a> {
     /// Creating a structure with information about a collision
     pub fn new(
-        object1: Box<dyn ObjectInterface>,
-        object2: Box<dyn ObjectInterface>,
+        object1: &'a mut dyn ObjectInterface,
+        object2: &'a mut dyn ObjectInterface,
         min_overlap: f32,
         smallest_axis: Vec2D,
         contact_vertex: Vec2D,

@@ -38,4 +38,8 @@ impl<T: ObjectInterface> AsObject for T {
     fn as_object(&self) -> &dyn ObjectInterface {
         self
     }
+
+    fn as_mut_object(&mut self) -> &mut dyn ObjectInterface {
+        self
+    }
 }
