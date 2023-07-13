@@ -26,8 +26,8 @@ fn main() {
     handles.push(thread::spawn(move || {
         let _program = Program::Start;
     let mut map = Map::default();
-    // map.init_map_border(Vec2D::new(0.0, 0.0), Vec2D::new(1920.0, 1080.0));
-    map.test_rectangle();
+    map.init_map_border(Vec2D::new(0.0, 0.0), Vec2D::new(1920.0, 1080.0));
+    // map.test_rectangle();
     let a = Rectangle::default();
     let a = Rectangle::new(
         Vec2D::new(1910.0, 0.0),

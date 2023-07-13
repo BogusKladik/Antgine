@@ -32,6 +32,8 @@ pub trait ObjectInterface: AsObject {
     fn get_angle_friction(&self) -> f32;
     fn get_circumradius(&self) -> f32;
     fn get_axis(&self) -> Vec<Vec2D>;
+    fn projection_on_axis(&self, axis: &Vec2D) -> (f32, f32, Vec2D);
+    fn intersection_circumscribed_circles(&self, object: &dyn ObjectInterface) -> bool;
 }
 
 impl<T: ObjectInterface> AsObject for T {

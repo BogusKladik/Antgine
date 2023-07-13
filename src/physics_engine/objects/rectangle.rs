@@ -1,8 +1,10 @@
 use std::{collections::HashMap, convert::TryInto};
 
+use crate::physics_engine::traits::as_object::AsObject;
+
 use super::super::{
     traits::{move_interface::MoveInterface, object_interface::ObjectInterface},
-    types::{angle::Angle, vec2d::Vec2D, matrix2d::Matrix2D},
+    types::{angle::Angle, matrix2d::Matrix2D, vec2d::Vec2D},
 };
 
 /// Rectangle structure
@@ -222,13 +224,45 @@ impl ObjectInterface for Rectangle {
     fn get_axis(&self) -> Vec<Vec2D> {
         vec![self.get_direction().normal(), self.get_direction()]
     }
+
+
+    fn intersection_circumscribed_circles(&self, object: &dyn ObjectInterface) -> bool {
+        self.get_potential_position()
+            .len_vector(&object.get_potential_position())
+            < self.get_circumradius() + object.get_circumradius()
+    }
+
+    /// Auxiliary function for finding the projections of points on the axis
+    fn projection_on_axis(&self, axis: &Vec2D) -> (f32, f32, Vec2D) {
+        let vertices = self.get_potential_vertex();
+
+        // initializes the min and max location of the point relative to the axis, and the vertex where the collision is
+        let mut min = Vec2D::dot(axis, &self.get_potential_vertex()[0]);
+        let mut max = min;
+        let mut collision_vertex = vertices[0];
+
+        // considers all vertices to find the answer
+        for view_vertex in vertices {
+            let p = Vec2D::dot(axis, &view_vertex);
+
+            if p < min {
+                min = p;
+                collision_vertex = view_vertex;
+            }
+
+            if p > max {
+                max = p
+            }
+        }
+        (max, min, collision_vertex)
+    }
 }
 
 impl MoveInterface for Rectangle {
     fn tracer(&mut self, time: f32) {
         self.position.insert(
             "potential".to_string(),
-            self.position["potential"] + Vec2D::new(self.velocity.x * time, self.velocity.y * time),
+            self.position["current"] + Vec2D::new(self.velocity.x * time, self.velocity.y * time),
         );
 
         self.angle = Angle::new(self.angle.get_radian() + self.angle_velocity);
@@ -236,22 +270,22 @@ impl MoveInterface for Rectangle {
         let rotation_matrix = Matrix2D::rotation_matrix(&self.angle);
         self.direction.insert(
             "current".to_string(),
-            rotation_matrix.multiply_vec2d(&self.direction["sample"])
+            rotation_matrix.multiply_vec2d(&self.direction["sample"]),
         );
 
         self.vertex.insert(
             "potential".to_string(),
             [
-                self.position["potential"]
+                self.position["current"]
                     + self.direction["current"].mul_n(-self.size.y / 2.0)
                     + self.direction["current"].normal().mul_n(-self.size.x / 2.0),
-                self.position["potential"]
+                self.position["current"]
                     + self.direction["current"].mul_n(-self.size.y / 2.0)
                     + self.direction["current"].normal().mul_n(self.size.x / 2.0),
-                self.position["potential"]
+                self.position["current"]
                     + self.direction["current"].mul_n(self.size.y / 2.0)
                     + self.direction["current"].normal().mul_n(-self.size.x / 2.0),
-                self.position["potential"]
+                self.position["current"]
                     + self.direction["current"].mul_n(self.size.y / 2.0)
                     + self.direction["current"].normal().mul_n(self.size.x / 2.0),
             ],
@@ -286,31 +320,6 @@ impl MoveInterface for Rectangle {
     }
 
     fn sat(&self, object: &dyn ObjectInterface) -> Option<(f32, Vec2D, Vec2D)> {
-        /// Auxiliary function for finding the projections of points on the axis
-        fn projection_on_axis(axis: &Vec2D, object: &dyn ObjectInterface) -> (f32, f32, Vec2D) {
-            let vertices = object.get_potential_vertex();
-
-            // initializes the min and max location of the point relative to the axis, and the vertex where the collision is
-            let mut min = Vec2D::dot(axis, &object.get_potential_vertex()[0]);
-            let mut max = min;
-            let mut collision_vertex = vertices[0];
-
-            // considers all vertices to find the answer
-            for view_vertex in vertices {
-                let p = Vec2D::dot(axis, &view_vertex);
-
-                if p < min {
-                    min = p;
-                    collision_vertex = view_vertex;
-                }
-
-                if p > max {
-                    max = p
-                }
-            }
-            (max, min, collision_vertex)
-        }
-
         // creates an array of axes of 2 objects
         let mut axes = self.get_axis();
         axes.extend(object.get_axis().iter());
@@ -322,8 +331,9 @@ impl MoveInterface for Rectangle {
 
         // looks at the projections if there is an overflow
         for i in 0..axes.len() {
-            let (max1, min1, _) = projection_on_axis(&axes[i], self);
-            let (max2, min2, _) = projection_on_axis(&axes[i], object);
+            self.as_object().projection_on_axis(&axes[i]);
+            let (max1, min1, _) = self.as_object().projection_on_axis(&axes[i]);
+            let (max2, min2, _) = object.projection_on_axis(&axes[i]);
 
             let mut overlap = max1.min(max2) - min1.max(min2);
             if overlap <= 0.0 {
@@ -367,18 +377,12 @@ impl MoveInterface for Rectangle {
         // changes contact vertex and minor axis, depending on whether the object is the main one
         let contact_vertex;
         if main_object {
-            contact_vertex = projection_on_axis(&smallest_axis, self).2;
+            contact_vertex = self.as_object().projection_on_axis(&smallest_axis).2;
         } else {
-            contact_vertex = projection_on_axis(&smallest_axis, object).2;
+            contact_vertex = object.projection_on_axis(&smallest_axis).2;
             smallest_axis = smallest_axis.mul_n(-1.0);
         }
 
         Some((min_overlap.unwrap(), smallest_axis, contact_vertex))
-    }
-
-    fn intersection_circumscribed_circles(&self, object: &dyn ObjectInterface) -> bool {
-        self.get_potential_position()
-            .len_vector(&object.get_potential_position())
-            < self.get_circumradius() + object.get_circumradius()
     }
 }

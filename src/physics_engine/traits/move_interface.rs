@@ -10,9 +10,6 @@ pub trait MoveInterface: ObjectInterface {
     /// Function changes the current characteristics of the object
     fn run(&mut self, time: f32);
 
-    /// Function checks the intersection of the described circles of objects 
-    fn intersection_circumscribed_circles(&self, object: &dyn ObjectInterface) -> bool;
-
     /// The sat (separating axis theorem) method is a method designed to detect collisions of convex polygons.
     /// 
     /// Returns: `None` - if objects do not collide or

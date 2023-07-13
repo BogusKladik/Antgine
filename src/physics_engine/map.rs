@@ -94,9 +94,9 @@ impl Map {
                 if (*self.dyn_objects[i]).intersection_circumscribed_circles(&(*self.objects[j])) {
                     // checks for collision using the sat method
                     if let Some((min_overlap, smallest_axis, contact_vertex)) = (*self.dyn_objects[i]).sat(&(*self.objects[j])) {
-                        let mut a = Collision::new(self.dyn_objects[i].as_mut_object(), self.objects[j].as_mut_object(), min_overlap, smallest_axis, contact_vertex);
-                        a.divide_objects();
-                        a.change_energy()
+                        let mut collision = Collision::new(self.dyn_objects[i].as_mut_object(), self.objects[j].as_mut_object(), min_overlap, smallest_axis, contact_vertex);
+                        collision.divide_objects();
+                        collision.change_energy()
                     }
                 }
             }
@@ -111,17 +111,15 @@ impl Map {
 
         // creates an array of collisions with moving objects, if any
         for i in 0..self.dyn_objects.len() {
-            for j in i..self.dyn_objects.len() {
+            let (l_dyn_objects, r_dyn_objects) = self.dyn_objects.split_at_mut(i + 1);
+            for r_dyn_object in r_dyn_objects.iter_mut() {
                 // checks circumscribed circles for collision
-                if (*self.dyn_objects[i]).intersection_circumscribed_circles((*self.dyn_objects[j]).as_object()) {
+                if l_dyn_objects[i].intersection_circumscribed_circles(r_dyn_object.as_object()) {
                     // checks for collision using the sat method
-                    match (*self.dyn_objects[i]).sat((*self.dyn_objects[j]).as_object()) {
-                        Some((min_overlap, smallest_axis, contact_vertex)) => {
-                            // TODO: here you need to fix the bug if you uncomment the code below. Without this line there will be no collision
-                            // Error here
-                            // Collision::new(Box::new(self.dyn_objects[i].as_object()), self.objects[j], min_overlap, smallest_axis, contact_vertex);
-                        },
-                        None => (),
+                    if let Some((min_overlap, smallest_axis, contact_vertex)) = l_dyn_objects[i].sat(r_dyn_object.as_object()) {
+                        let mut collision = Collision::new(l_dyn_objects[i].as_mut_object(), r_dyn_object.as_mut_object(), min_overlap, smallest_axis, contact_vertex);
+                        collision.divide_objects();
+                        collision.change_energy()
                     }
                 }
             }
